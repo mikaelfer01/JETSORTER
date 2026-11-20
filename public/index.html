@@ -60,11 +60,11 @@
     base = lw / 1500;
     // cabe tudo numa tela: mede o conteúdo em escala 1 e reduz até a altura também caber
     try {
-      var hd = document.querySelector('header.bar'), tb = $('#titleBar'), mb = $('#mapBody'); setScale(1);
+      var o0 = sc(), hd = document.querySelector('header.bar'), tb = $('#titleBar'), mb = $('#mapBody'); setScale(1);
       var ch = (tb ? tb.offsetHeight : 0) + (mb ? mb.offsetHeight : 0), hh = hd ? hd.offsetHeight : 0;
       if (ch > 200) base = Math.min(base, Math.max(lh - hh - 10, 120) / ch);
-    } catch (e) {}
-    setScale(base * mult);
+      setScale(base * mult); go(o0.x, o0.y);
+    } catch (e) { setScale(base * mult); }
   }
   fit(); window.addEventListener('resize', fit); if (window.visualViewport) window.visualViewport.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 150); });
   function sc() { return rot ? { x: R.scrollLeft, y: R.scrollTop } : { x: window.scrollX, y: window.scrollY }; }
@@ -115,7 +115,7 @@
       var so = sc(), sx = so.x, sy = so.y, card = document.querySelector('.mapcard'), cl = card ? card.scrollLeft : 0, ct = card ? card.scrollTop : 0;
       $('#mapBody').innerHTML = html; at = j.at || Date.now();
       var c2 = document.querySelector('.mapcard'); if (c2) { c2.scrollLeft = cl; c2.scrollTop = ct; } go(sx, sy);
-      fit(); tick();
+      if (!pz) fit(); tick();
     } catch (e) { $('#liveTxt').textContent = 'sem conexão'; }
     busy = false;
   }
