@@ -21,6 +21,8 @@
   #msg{padding:28px 16px;text-align:center;color:#667085}
   #tipSheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#111827;color:#fff;padding:14px 16px 22px;font-size:14px;white-space:pre-wrap;display:none;border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.35)}
   #keyBox{display:none;padding:20px 16px;text-align:center} #keyBox input{width:90%;max-width:360px;padding:10px;font-size:16px;border:1px solid #cbd3e1;border-radius:8px} #keyBox button{margin-top:10px;padding:10px 22px;font-size:16px;border:0;border-radius:8px;background:#e60012;color:#fff}
+  #pwaBar{display:none;position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:70;background:#111827;color:#fff;padding:10px 12px;border-radius:12px;font-size:14px;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+  #pwaBar span{flex:1} #pwaBar button{border:0;border-radius:8px;padding:8px 12px;font-size:14px;background:#e60012;color:#fff} #pwaBar #pwaX{background:transparent;font-size:22px;padding:0 6px}
 </style>
 </head>
 <body>
@@ -34,6 +36,7 @@
 </main>
 <div id="keyBox"><p>Informe a chave de acesso:</p><input id="keyIn" type="password" autocomplete="off"><br><button id="keyOk">Entrar</button></div>
 <div id="mobZoom"><button data-z="-1" aria-label="diminuir">&minus;</button><button data-z="1" aria-label="aumentar">+</button></div>
+<div id="pwaBar"><span id="pwaTxt"></span><button id="pwaGo">Instalar</button><button id="pwaX" aria-label="fechar">&times;</button></div>
 <div id="tipSheet"></div>
 <script>
 (function () {
@@ -48,6 +51,18 @@
   $('#tipSheet').addEventListener('click', function () { this.style.display = 'none'; });
   function fit() { var w = Math.min(window.innerWidth, document.documentElement.clientWidth || window.innerWidth); document.documentElement.style.setProperty('--ms', (w / 1500).toFixed(4)); }
   fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', fit);
+
+  // ===== tela cheia / instalação =====
+  var standalone = window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var bar = $('#pwaBar'), dEvt = null;
+  function showBar(t, btn) { try { if (localStorage.getItem('sorterPwaX')) return; } catch (e) {} $('#pwaTxt').textContent = t; $('#pwaGo').style.display = btn ? '' : 'none'; bar.style.display = 'flex'; }
+  $('#pwaX').onclick = function () { bar.style.display = 'none'; try { localStorage.setItem('sorterPwaX', '1'); } catch (e) {} };
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dEvt = e; if (!standalone) showBar('Instale o app para abrir em tela cheia.', true); });
+  $('#pwaGo').onclick = function () { if (dEvt) { dEvt.prompt(); dEvt = null; } bar.style.display = 'none'; };
+  if (isIOS && !standalone) showBar('Para tela cheia: toque em Compartilhar e depois em "Adicionar à Tela de Início".', false);
+  // navegador comum (Android/desktop): entra em tela cheia no primeiro toque
+  if (!standalone) { var goFs = function () { var el = document.documentElement, f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { try { var r = f.call(el, { navigationUI: 'hide' }); if (r && r.catch) r.catch(function () {}); } catch (e) {} } document.removeEventListener('click', goFs); }; document.addEventListener('click', goFs); }
   var at = 0;
   function ago(ms) { var s = Math.max(0, Math.round(ms / 1000)); return s < 90 ? s + ' s' : Math.round(s / 60) + ' min'; }
   function tick() {
