@@ -1,0 +1,46 @@
+/* ===== modo celular: somente a aba Mapa ===== */
+html.mob, html.mob body { overflow: auto !important; height: auto !important; min-height: 100%; -webkit-text-size-adjust: 100%; }
+html.mob #views, html.mob header.bar nav.views, html.mob .toolbar.strip, html.mob #foot, html.mob .ctrls, html.mob .title small, html.mob #btnTV, html.mob .app-only { display: none !important; }
+html.mob header.bar { display: flex !important; align-items: center; gap: 8px; height: auto !important; padding: 6px 10px !important; position: sticky; top: 0; z-index: 20; }
+html.mob header.bar .title { height: auto !important; } html.mob header.bar .title b, html.mob header.bar .title strong { font-size: 15px; }
+html.mob header.bar #live, html.mob header.bar .live { display: flex !important; font-size: 11px; margin: 0; padding: 3px 8px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 62vw; }
+html.mob #alertTicker { margin: 4px 8px 0 !important; }
+html.mob main { height: auto !important; overflow: visible !important; padding: 6px 8px 80px !important; --maptop: 0px; }
+html.mob main[data-view='map'] .vm { height: auto !important; overflow: visible !important; gap: 8px; }
+html.mob main .vm .vwbar { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
+html.mob main .vm .vwbar h2 { font-size: 15px !important; }
+html.mob main .vm .vwctl { flex-wrap: wrap !important; gap: 6px !important; justify-content: flex-start !important; }
+html.mob main .vm .vwctl label { font-size: 11px !important; } html.mob main .vm .vwctl select { max-width: 46vw !important; font-size: 12px !important; }
+html.mob #mapHelpBtn, html.mob #mapLayer, html.mob label:has(#mapLayer), html.mob label:has(#mapBase) { display: none !important; }
+html.mob #mapBody { min-height: 0 !important; }
+html.mob .mapgrid { display: flex !important; flex-direction: column; height: auto !important; gap: 8px; }
+html.mob .mapside { order: -1; overflow: visible !important; }
+html.mob .mapside .mapkpis { grid-template-columns: 1fr 1fr !important; grid-auto-rows: auto !important; overflow: visible !important; }
+html.mob .mapside .mapkpis .kpi { padding: 8px 10px !important; } html.mob .mapside .mapkpis .kpi b { font-size: 22px !important; }
+html.mob .mapside .mapkpis .kpi span { display: block !important; font-size: 10.5px !important; }
+html.mob .mapside .mapkpis .kpi.dayk b, html.mob .mapside .mapkpis .kpi.rejk b { font-size: 26px !important; }
+html.mob .mapmain { display: block !important; }
+html.mob .mapmain .mapcard { overflow: auto; -webkit-overflow-scrolling: touch; padding: 8px !important; max-height: 78vh; }
+html.mob .mapmain .sorterMap { width: var(--mz, 280%) !important; max-width: none !important; height: auto !important; flex: none !important; }
+html.mob .dayrow { display: block !important; height: auto !important; }
+html.mob .dayrow .dayprod { height: 210px !important; margin-bottom: 8px !important; flex: none !important; }
+html.mob .dayprod .pcols { overflow-x: auto !important; } html.mob .pcol { min-width: 46px !important; }
+html.mob #boot { position: fixed; inset: 0; z-index: 50; }
+#mobZoom { position: fixed; right: 12px; bottom: 16px; z-index: 40; display: flex; flex-direction: column; gap: 8px; }
+#mobZoom button { width: 46px; height: 46px; border-radius: 50%; border: 1px solid #cbd3e1; background: #fff; color: #1b2740; font-size: 24px; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+html.mob #mapBody, html.mob .mapmain, html.mob .mapside, html.mob .mapmain .mapcard, html.mob .mapmain .dayprod { flex: none !important; }
+html.mob .mapside .mapkpis .kpi, html.mob .kpis > .kpi, html.mob .mapkpis > .kpi { height: auto !important; min-height: 0; overflow: visible !important; }
+html.mob .mapside .mapkpis { flex: none !important; }
+html.mob .mapgrid, html.mob .vm { display: flex !important; flex-direction: column !important; height: auto !important; max-height: none !important; }
+html.mob .mapmain .mapcard { display: block !important; }
+/* KPIs compactos: 3 por linha; rejeito e produção em destaque; o mapa aparece logo abaixo */
+html.mob .mapside .mapkpis { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 6px !important; }
+html.mob .mapside .mapkpis .kpi { grid-column: span 2; padding: 6px 8px !important; }
+html.mob .mapside .mapkpis .kpi.rejk, html.mob .mapside .mapkpis .kpi.dayk { grid-column: span 3 !important; }
+html.mob .mapside .mapkpis .kpi label { font-size: 9px !important; line-height: 1.2; letter-spacing: .02em; }
+html.mob .mapside .mapkpis .kpi b { font-size: 19px !important; }
+html.mob .mapside .mapkpis .kpi.dayk b, html.mob .mapside .mapkpis .kpi.rejk b { font-size: 24px !important; }
+html.mob .mapside .mapkpis .kpi span { display: none !important; }
+html.mob .mapside .mapkpis .kpi.dayk span, html.mob .mapside .mapkpis .kpi.rejk span { display: block !important; font-size: 9.5px !important; }
+html.mob .vwbar h2 small { display: none; }
+html.mob .mapside .mapkpis .kpi.rejk, html.mob .mapside .mapkpis .kpi.dayk { order: -1; }

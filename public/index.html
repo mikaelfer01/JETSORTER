@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light" class="mob">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e60012">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Sorter · Mapa</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="mobile.css">
+<style>
+  #stale{display:none;margin:6px 8px 0;padding:8px 10px;border-radius:8px;background:#fff3cd;color:#664d03;font-size:13px}
+  #msg{padding:28px 16px;text-align:center;color:#667085}
+  #tipSheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#111827;color:#fff;padding:14px 16px 22px;font-size:14px;white-space:pre-wrap;display:none;border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.35)}
+  #keyBox{display:none;padding:20px 16px;text-align:center} #keyBox input{width:90%;max-width:360px;padding:10px;font-size:16px;border:1px solid #cbd3e1;border-radius:8px} #keyBox button{margin-top:10px;padding:10px 22px;font-size:16px;border:0;border-radius:8px;background:#e60012;color:#fff}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="title"><i class="mark"></i><div><b>Sorter · Mapa</b></div></div>
+  <div class="live" id="live"><i class="pulse"></i><b id="liveState">AO VIVO</b><span id="liveTxt">carregando…</span></div>
+</header>
+<div id="stale"></div>
+<main id="main" data-view="map">
+  <section id="viewMap" class="vw vm" style="display:block"><div id="mapBody"><div id="msg">Carregando o mapa…</div></div></section>
+</main>
+<div id="keyBox"><p>Informe a chave de acesso:</p><input id="keyIn" type="password" autocomplete="off"><br><button id="keyOk">Entrar</button></div>
+<div id="mobZoom"><button data-z="-1" aria-label="diminuir">&minus;</button><button data-z="1" aria-label="aumentar">+</button></div>
+<div id="tipSheet"></div>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var KEY = '';
+  try { var m = /[#&]k=([^&]+)/.exec(location.hash); if (m) { localStorage.setItem('sorterMapKey', decodeURIComponent(m[1])); history.replaceState(null, '', location.pathname); } KEY = localStorage.getItem('sorterMapKey') || ''; } catch (e) {}
+  var zoom = 220; try { zoom = +(localStorage.getItem('sorterMobZoom') || 220); } catch (e) {}
+  var applyZ = function () { document.documentElement.style.setProperty('--mz', zoom + '%'); }; applyZ();
+  $('#mobZoom').addEventListener('click', function (e) { var b = e.target.closest('[data-z]'); if (!b) return; zoom = Math.max(100, Math.min(700, zoom + (+b.dataset.z) * 60)); try { localStorage.setItem('sorterMobZoom', zoom); } catch (x) {} applyZ(); });
+  $('#keyOk').onclick = function () { KEY = $('#keyIn').value.trim(); try { localStorage.setItem('sorterMapKey', KEY); } catch (e) {} $('#keyBox').style.display = 'none'; load(); };
+  $('#mapBody').addEventListener('click', function (e) { var g = e.target.closest('[data-tip]'); var s = $('#tipSheet'); if (!g) { s.style.display = 'none'; return; } s.textContent = g.getAttribute('data-tip'); s.style.display = 'block'; });
+  $('#tipSheet').addEventListener('click', function () { this.style.display = 'none'; });
+  var at = 0;
+  function ago(ms) { var s = Math.max(0, Math.round(ms / 1000)); return s < 90 ? s + ' s' : Math.round(s / 60) + ' min'; }
+  function tick() {
+    if (!at) return; var age = Date.now() - at, old = age > 120000;
+    $('#liveState').textContent = old ? 'SEM DADOS' : 'AO VIVO'; $('#liveTxt').textContent = 'atualizado há ' + ago(age);
+    var st = $('#stale'); st.style.display = old ? 'block' : 'none'; if (old) st.textContent = 'Sem dados novos há ' + ago(age) + '. Confira se o app do Windows está aberto, com a chave e o endereço configurados.';
+  }
+  function b64gunzip(b64) {
+    var bin = atob(b64), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  }
+  var busy = false;
+  async function load() {
+    if (busy) return; busy = true;
+    try {
+      if (!KEY) { $('#keyBox').style.display = 'block'; busy = false; return; }
+      var r = await fetch('/api/state', { headers: { 'x-key': KEY }, cache: 'no-store' });
+      if (r.status === 401) { try { localStorage.removeItem('sorterMapKey'); } catch (e) {} KEY = ''; $('#mapBody').innerHTML = '<div id="msg">Chave inválida.</div>'; $('#keyBox').style.display = 'block'; busy = false; return; }
+      if (r.status === 404) { $('#mapBody').innerHTML = '<div id="msg">Ainda sem dados. Abra o app do Windows (com o envio ao celular configurado) e aguarde 1 minuto.</div>'; busy = false; return; }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      var j = await r.json(); var html = j.z ? await b64gunzip(j.z) : j.html;
+      var sx = window.scrollX, sy = window.scrollY, card = document.querySelector('.mapcard'), cl = card ? card.scrollLeft : 0, ct = card ? card.scrollTop : 0;
+      $('#mapBody').innerHTML = html; at = j.at || Date.now();
+      var c2 = document.querySelector('.mapcard'); if (c2) { c2.scrollLeft = cl; c2.scrollTop = ct; } window.scrollTo(sx, sy);
+      tick();
+    } catch (e) { $('#liveTxt').textContent = 'sem conexão'; }
+    busy = false;
+  }
+  load(); setInterval(load, 15000); setInterval(tick, 5000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
+  try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+})();
+</script>
+</body>
+</html>
