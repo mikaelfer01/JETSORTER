@@ -59,7 +59,7 @@ html.mob #keyBox, html.mob #keyBox * { pointer-events: auto !important; }
 
 /* ===== sempre horizontal: em pé, a "tela" (#rot) é girada 90° e rola por dentro ===== */
 html.mob.rot, html.mob.rot body { overflow: hidden !important; height: 100% !important; width: 100%; }
-html.mob.rot #rot { position: fixed; top: 0; left: 100vw; width: 100vh; height: 100vw; transform: rotate(90deg); transform-origin: top left; overflow: auto; touch-action: none; -webkit-overflow-scrolling: touch; background: var(--bg, #f2f3f5); }
+html.mob.rot #rot { position: fixed; top: 0; left: 100vw; width: 100vh; height: 100vw; /* ajustado em px por JS */ transform: rotate(90deg); transform-origin: top left; overflow: auto; touch-action: none; -webkit-overflow-scrolling: touch; background: var(--bg, #f2f3f5); }
 html.mob.rot header.bar { position: sticky; top: 0; }
 
 /* barra do título (fica fora do HTML enviado pelo app; escala junto com o mapa) */

@@ -52,22 +52,24 @@
   function setScale(v) { de.style.setProperty('--ms', v.toFixed(4)); }
   // sempre horizontal: com o celular em pé, o conteúdo é girado 90° (R vira a "tela" rolável)
   function fit() {
-    rot = window.innerHeight > window.innerWidth + 40; de.classList.toggle('rot', rot);
-    var lw = rot ? window.innerHeight : Math.min(window.innerWidth, de.clientWidth || window.innerWidth);
-    var lh = rot ? Math.min(window.innerWidth, de.clientWidth || window.innerWidth) : window.innerHeight;
+    var vv = window.visualViewport, VW = Math.round(vv ? vv.width : window.innerWidth), VH = Math.round(vv ? vv.height : window.innerHeight);
+    rot = VH > VW + 40; de.classList.toggle('rot', rot);
+    if (rot) { R.style.width = VH + 'px'; R.style.height = VW + 'px'; R.style.left = VW + 'px'; R.style.top = '0px'; } else { R.style.width = R.style.height = R.style.left = R.style.top = ''; }
+    var lw = rot ? VH : VW;
+    var lh = rot ? VW : VH;
     base = lw / 1500;
     // cabe tudo numa tela: mede o conteúdo em escala 1 e reduz até a altura também caber
     try {
       var hd = document.querySelector('header.bar'), tb = $('#titleBar'), mb = $('#mapBody'); setScale(1);
-      var ch = (tb ? tb.offsetHeight : 0) + (mb ? mb.offsetHeight : 0), hh = hd ? hd.offsetHeight * 0.6 : 0;
-      if (ch > 200) base = Math.min(base, Math.max(lh - hh - 4, 120) / ch);
+      var ch = (tb ? tb.offsetHeight : 0) + (mb ? mb.offsetHeight : 0), hh = hd ? hd.offsetHeight : 0;
+      if (ch > 200) base = Math.min(base, Math.max(lh - hh - 10, 120) / ch);
     } catch (e) {}
     setScale(base * mult);
   }
-  fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 150); });
+  fit(); window.addEventListener('resize', fit); if (window.visualViewport) window.visualViewport.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 150); });
   function sc() { return rot ? { x: R.scrollLeft, y: R.scrollTop } : { x: window.scrollX, y: window.scrollY }; }
   function go(x, y) { if (rot) { R.scrollLeft = x; R.scrollTop = y; } else window.scrollTo(x, y); }
-  function pt(t) { return rot ? { x: t.clientY, y: window.innerWidth - t.clientX } : { x: t.clientX, y: t.clientY }; }
+  function pt(t) { return rot ? { x: t.clientY, y: parseFloat(R.style.height) - t.clientX } : { x: t.clientX, y: t.clientY }; }
   var pz = null, pan = null;
   function dist(t) { var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.sqrt(dx * dx + dy * dy) || 1; }
   document.addEventListener('touchstart', function (e) {
