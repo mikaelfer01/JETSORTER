@@ -26,8 +26,8 @@ html.mob .mapmain { display: flex !important; flex-direction: column; gap: 10px;
 html.mob .mapmain .mapcard { display: flex !important; flex-direction: column; overflow: visible !important; max-height: none !important; padding: 8px 12px !important; flex: none !important; }
 html.mob .mapmain .maplg { font-size: 13px; gap: 4px 14px; }
 html.mob .mapmain .sorterMap { width: 100% !important; max-width: 100% !important; height: auto !important; flex: none !important; }
-html.mob .dayrow { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; height: auto !important; }
-html.mob .dayrow .dayprod, html.mob .mapmain .dayprod { height: 270px !important; min-height: 0; margin: 0 !important; flex: none !important; }
+html.mob .dayrow { display: flex !important; flex-direction: column; gap: 10px; height: auto !important; }
+html.mob .dayrow .dayprod, html.mob .mapmain .dayprod { width: 100% !important; height: 300px !important; min-height: 0; margin: 0 !important; flex: none !important; }
 html.mob .dayprod .pcols { overflow: hidden !important; } html.mob .pcol { min-width: 0 !important; }
 
 html.mob .mapside { order: 0; display: flex !important; flex-direction: column; gap: 8px; overflow: visible !important; flex: none !important; }
