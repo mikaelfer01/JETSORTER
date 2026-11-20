@@ -1,7 +1,7 @@
 /* ===== modo celular: idêntico ao app =====
    O layout do desktop (mapa + indicadores à direita + gráficos embaixo) é desenhado numa
    "tela" fixa de 1500px e reduzido (zoom) para caber na largura do celular. */
-html.mob, html.mob body { overflow-x: hidden; height: auto !important; min-height: 100%; -webkit-text-size-adjust: 100%; }
+html.mob { overflow-x: clip; overflow-y: auto; } html.mob body { overflow: visible !important; } html.mob, html.mob body { height: auto !important; min-height: 100%; -webkit-text-size-adjust: 100%; }
 html.mob #views, html.mob header.bar nav.views, html.mob .toolbar.strip, html.mob #foot, html.mob .ctrls, html.mob .title small, html.mob #btnTV, html.mob .app-only, html.mob #mobZoom, html.mob #mapHelpBtn { display: none !important; }
 html.mob header.bar { display: flex !important; align-items: center; gap: 10px; height: auto !important; padding: 6px 12px !important; position: sticky; top: 0; z-index: 20; }
 html.mob header.bar .title b { font-size: 16px; }
@@ -42,3 +42,11 @@ html.mob .mapside .mapkpis .kpi span { display: block !important; font-size: 12p
 /* ===== PWA em tela cheia (iPhone/Android): respeita notch e barra inferior ===== */
 html.mob body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); background: var(--bg, #f2f3f5); -webkit-touch-callout: none; overscroll-behavior-y: none; }
 html.mob header.bar { padding-top: calc(6px + env(safe-area-inset-top)) !important; }
+
+/* ===== rolagem: arrastar em qualquer ponto da tela (mapa, indicadores, gráficos) ===== */
+html.mob, html.mob body, html.mob #mapBody, html.mob #mapBody * { touch-action: pan-x pan-y pinch-zoom; }
+html.mob #mapBody { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+html.mob #mapBody *, html.mob main { overscroll-behavior: auto; }
+html.mob .mapcard, html.mob .mapmain, html.mob .mapside, html.mob .mapgrid, html.mob .dayprod, html.mob .pcols, html.mob .sorterMap { overflow: visible !important; }
+html.mob .dayprod .pcols { overflow: hidden !important; }
+html.mob body { overscroll-behavior-y: auto; }
