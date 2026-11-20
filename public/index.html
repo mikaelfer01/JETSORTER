@@ -26,14 +26,17 @@
 </style>
 </head>
 <body>
+<div id="rot">
 <header class="bar">
   <div class="title"><i class="mark"></i><div><b>Sorter Monitor</b></div></div>
   <div class="live" id="live"><i class="pulse"></i><b id="liveState">AO VIVO</b><span id="liveTxt">carregando…</span></div>
 </header>
 <div id="stale"></div>
+<div class="vwbar" id="titleBar"><h2>Mapa do sorter <small>todas as saídas e induções, ao vivo</small></h2></div>
 <main id="main" data-view="map">
   <section id="viewMap" class="vw vm" style="display:block"><div id="mapBody"><div id="msg">Carregando o mapa…</div></div></section>
 </main>
+</div>
 <div id="keyBox"><p>Informe a chave de acesso:</p><input id="keyIn" type="password" autocomplete="off"><br><button id="keyOk">Entrar</button></div>
 
 <script>
@@ -45,20 +48,33 @@
   var zoom = 220; try { zoom = +(localStorage.getItem('sorterMobZoom') || 220); } catch (e) {}
   var applyZ = function () { document.documentElement.style.setProperty('--mz', zoom + '%'); }; applyZ();
   $('#keyOk').onclick = function () { KEY = $('#keyIn').value.trim(); try { localStorage.setItem('sorterMapKey', KEY); } catch (e) {} $('#keyBox').style.display = 'none'; load(); };
-  var base = 1, mult = 1, de = document.documentElement;
+  var base = 1, mult = 1, de = document.documentElement, R = $('#rot'), rot = false;
   function setScale(v) { de.style.setProperty('--ms', v.toFixed(4)); }
-  function fit() { base = Math.min(window.innerWidth, de.clientWidth || window.innerWidth) / 1500; setScale(base * mult); }
-  fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', fit);
-  // zoom por pinça próprio (funciona em Android e iPhone, inclusive instalado como app)
-  var pz = null;
+  // sempre horizontal: com o celular em pé, o conteúdo é girado 90° (R vira a "tela" rolável)
+  function fit() {
+    rot = window.innerHeight > window.innerWidth + 40; de.classList.toggle('rot', rot);
+    var lw = rot ? window.innerHeight : Math.min(window.innerWidth, de.clientWidth || window.innerWidth);
+    base = lw / 1500; setScale(base * mult);
+  }
+  fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 150); });
+  function sc() { return rot ? { x: R.scrollLeft, y: R.scrollTop } : { x: window.scrollX, y: window.scrollY }; }
+  function go(x, y) { if (rot) { R.scrollLeft = x; R.scrollTop = y; } else window.scrollTo(x, y); }
+  function pt(t) { return rot ? { x: t.clientY, y: window.innerWidth - t.clientX } : { x: t.clientX, y: t.clientY }; }
+  var pz = null, pan = null;
   function dist(t) { var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.sqrt(dx * dx + dy * dy) || 1; }
-  document.addEventListener('touchstart', function (e) { if (e.touches.length === 2) { var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2, cy = (e.touches[0].clientY + e.touches[1].clientY) / 2; pz = { d: dist(e.touches), m: mult, s: base * mult, fx: (window.scrollX + cx) / (base * mult), fy: (window.scrollY + cy) / (base * mult), cx: cx, cy: cy }; } }, { passive: true });
+  document.addEventListener('touchstart', function (e) {
+    if (e.touches.length === 2) {
+      var a = pt(e.touches[0]), b = pt(e.touches[1]), cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2, o = sc(), cs = base * mult;
+      pz = { d: dist(e.touches), m: mult, fx: (o.x + cx) / cs, fy: (o.y + cy) / cs, cx: cx, cy: cy }; pan = null;
+    } else if (e.touches.length === 1) { var p = pt(e.touches[0]); pan = { x: p.x, y: p.y }; }
+  }, { passive: true });
   document.addEventListener('touchmove', function (e) {
-    if (!pz || e.touches.length !== 2) return; e.preventDefault();
-    mult = Math.max(1, Math.min(5, pz.m * dist(e.touches) / pz.d)); var ns = base * mult; setScale(ns);
-    window.scrollTo(pz.fx * ns - pz.cx, pz.fy * ns - pz.cy);
+    if (pz && e.touches.length === 2) {
+      e.preventDefault(); mult = Math.max(1, Math.min(5, pz.m * dist(e.touches) / pz.d)); var ns = base * mult; setScale(ns); go(pz.fx * ns - pz.cx, pz.fy * ns - pz.cy); return;
+    }
+    if (rot && pan && e.touches.length === 1) { e.preventDefault(); var p = pt(e.touches[0]), o = sc(); go(o.x - (p.x - pan.x), o.y - (p.y - pan.y)); pan = { x: p.x, y: p.y }; }
   }, { passive: false });
-  document.addEventListener('touchend', function (e) { if (e.touches.length < 2) pz = null; }, { passive: true });
+  document.addEventListener('touchend', function (e) { if (e.touches.length < 2) pz = null; if (e.touches.length === 0) pan = null; else if (e.touches.length === 1) { pan = pt(e.touches[0]); } }, { passive: true });
   document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
   // tela cheia + horizontal no primeiro toque (navegador comum); instalado como app já abre assim
   var lockL = function () { try { screen.orientation.lock('landscape').catch(function () {}); } catch (e) {} };
@@ -86,14 +102,14 @@
       if (r.status === 404) { $('#mapBody').innerHTML = '<div id="msg">Ainda sem dados. Abra o app do Windows (com o envio ao celular configurado) e aguarde 1 minuto.</div>'; busy = false; return; }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       var j = await r.json(); if (j.at && j.at === lastAt) { tick(); busy = false; return; } lastAt = j.at || 0; var html = j.z ? await b64gunzip(j.z) : j.html;
-      var sx = window.scrollX, sy = window.scrollY, card = document.querySelector('.mapcard'), cl = card ? card.scrollLeft : 0, ct = card ? card.scrollTop : 0;
+      var so = sc(), sx = so.x, sy = so.y, card = document.querySelector('.mapcard'), cl = card ? card.scrollLeft : 0, ct = card ? card.scrollTop : 0;
       $('#mapBody').innerHTML = html; at = j.at || Date.now();
-      var c2 = document.querySelector('.mapcard'); if (c2) { c2.scrollLeft = cl; c2.scrollTop = ct; } window.scrollTo(sx, sy);
+      var c2 = document.querySelector('.mapcard'); if (c2) { c2.scrollLeft = cl; c2.scrollTop = ct; } go(sx, sy);
       tick();
     } catch (e) { $('#liveTxt').textContent = 'sem conexão'; }
     busy = false;
   }
-  load(); setInterval(load, 5000); setInterval(tick, 5000);
+  load(); setInterval(load, 4000); setInterval(tick, 5000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
   try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});

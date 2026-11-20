@@ -8,6 +8,8 @@ module.exports = async (req, res) => {
   if (!process.env.VIEW_KEY || k !== process.env.VIEW_KEY) return res.status(401).json({ error: 'chave inválida' });
   if (!URL_ || !TOKEN) return res.status(500).json({ error: 'Upstash Redis não configurado (variáveis de ambiente)' });
   try {
+    // avisa o app do Windows que há alguém olhando (ele passa a enviar a cada ~4 s)
+    fetch(`${URL_}/set/sorter_watch/1?EX=20`, { method: 'POST', headers: { Authorization: `Bearer ${TOKEN}` } }).catch(() => {});
     const r = await fetch(`${URL_}/get/sorter_map`, { headers: { Authorization: `Bearer ${TOKEN}` } });
     const j = await r.json();
     if (!j.result) return res.status(404).json({ empty: true });

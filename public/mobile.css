@@ -56,3 +56,13 @@ html.mob #mapBody, html.mob #mapBody * { pointer-events: none !important; -webki
 html.mob #mapBody select, html.mob #mapBody button, html.mob #mapBody a, html.mob #mapBody input { pointer-events: none !important; }
 html.mob #pwaBar, html.mob #tipSheet, html.mob #mobZoom { display: none !important; }
 html.mob #keyBox, html.mob #keyBox * { pointer-events: auto !important; }
+
+/* ===== sempre horizontal: em pé, a "tela" (#rot) é girada 90° e rola por dentro ===== */
+html.mob.rot, html.mob.rot body { overflow: hidden !important; height: 100% !important; width: 100%; }
+html.mob.rot #rot { position: fixed; top: 0; left: 100vw; width: 100vh; height: 100vw; transform: rotate(90deg); transform-origin: top left; overflow: auto; touch-action: none; -webkit-overflow-scrolling: touch; background: var(--bg, #f2f3f5); }
+html.mob.rot header.bar { position: sticky; top: 0; }
+
+/* barra do título (fica fora do HTML enviado pelo app; escala junto com o mapa) */
+html.mob #titleBar { width: 1500px; box-sizing: border-box; zoom: var(--ms, .25); padding: 12px 10px 0; margin: 0; }
+html.mob #titleBar h2 { margin: 0; font-size: 20px; } html.mob #titleBar h2 small { font-size: 13px; margin-left: 8px; color: var(--muted, #647087); font-weight: 400; }
+html.mob header.bar { zoom: .6; padding-top: calc(4px + env(safe-area-inset-top)) !important; }

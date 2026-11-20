@@ -16,6 +16,8 @@ module.exports = async (req, res) => {
   try {
     const r = await fetch(`${URL_}/set/sorter_map?EX=600`, { method: 'POST', headers: { Authorization: `Bearer ${TOKEN}` }, body });
     if (!r.ok) return res.status(502).json({ error: 'falha ao gravar', status: r.status });
-    return res.status(200).json({ ok: true });
+    let watch = false;
+    try { const w = await fetch(`${URL_}/get/sorter_watch`, { headers: { Authorization: `Bearer ${TOKEN}` } }); watch = !!(await w.json()).result; } catch (e) {}
+    return res.status(200).json({ ok: true, watch });
   } catch (e) { return res.status(502).json({ error: String(e && e.message || e) }); }
 };
