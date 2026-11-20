@@ -50,3 +50,9 @@ html.mob #mapBody *, html.mob main { overscroll-behavior: auto; }
 html.mob .mapcard, html.mob .mapmain, html.mob .mapside, html.mob .mapgrid, html.mob .dayprod, html.mob .pcols, html.mob .sorterMap { overflow: visible !important; }
 html.mob .dayprod .pcols { overflow: hidden !important; }
 html.mob body { overscroll-behavior-y: auto; }
+
+/* ===== somente visualização: nada é clicável (a rolagem e a pinça continuam) ===== */
+html.mob #mapBody, html.mob #mapBody * { pointer-events: none !important; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; cursor: default; }
+html.mob #mapBody select, html.mob #mapBody button, html.mob #mapBody a, html.mob #mapBody input { pointer-events: none !important; }
+html.mob #pwaBar, html.mob #tipSheet, html.mob #mobZoom { display: none !important; }
+html.mob #keyBox, html.mob #keyBox * { pointer-events: auto !important; }

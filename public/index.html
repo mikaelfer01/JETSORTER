@@ -35,9 +35,7 @@
   <section id="viewMap" class="vw vm" style="display:block"><div id="mapBody"><div id="msg">Carregando o mapa…</div></div></section>
 </main>
 <div id="keyBox"><p>Informe a chave de acesso:</p><input id="keyIn" type="password" autocomplete="off"><br><button id="keyOk">Entrar</button></div>
-<div id="mobZoom"><button data-z="-1" aria-label="diminuir">&minus;</button><button data-z="1" aria-label="aumentar">+</button></div>
-<div id="pwaBar"><span id="pwaTxt"></span><button id="pwaGo">Instalar</button><button id="pwaX" aria-label="fechar">&times;</button></div>
-<div id="tipSheet"></div>
+
 <script>
 (function () {
   var $ = function (s) { return document.querySelector(s); };
@@ -45,25 +43,14 @@
   try { var m = /[#&]k=([^&]+)/.exec(location.hash); if (m) { localStorage.setItem('sorterMapKey', decodeURIComponent(m[1])); history.replaceState(null, '', location.pathname); } KEY = localStorage.getItem('sorterMapKey') || ''; } catch (e) {}
   var zoom = 220; try { zoom = +(localStorage.getItem('sorterMobZoom') || 220); } catch (e) {}
   var applyZ = function () { document.documentElement.style.setProperty('--mz', zoom + '%'); }; applyZ();
-  $('#mobZoom').addEventListener('click', function (e) { var b = e.target.closest('[data-z]'); if (!b) return; zoom = Math.max(100, Math.min(700, zoom + (+b.dataset.z) * 60)); try { localStorage.setItem('sorterMobZoom', zoom); } catch (x) {} applyZ(); });
   $('#keyOk').onclick = function () { KEY = $('#keyIn').value.trim(); try { localStorage.setItem('sorterMapKey', KEY); } catch (e) {} $('#keyBox').style.display = 'none'; load(); };
-  $('#mapBody').addEventListener('click', function (e) { var g = e.target.closest('[data-tip]'); var s = $('#tipSheet'); if (!g) { s.style.display = 'none'; return; } s.textContent = g.getAttribute('data-tip'); s.style.display = 'block'; });
-  $('#tipSheet').addEventListener('click', function () { this.style.display = 'none'; });
   function fit() { var w = Math.min(window.innerWidth, document.documentElement.clientWidth || window.innerWidth); document.documentElement.style.setProperty('--ms', (w / 1500).toFixed(4)); }
   fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', fit);
 
-  // ===== tela cheia / instalação =====
-  var standalone = window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  var bar = $('#pwaBar'), dEvt = null;
-  function showBar(t, btn) { try { if (localStorage.getItem('sorterPwaX')) return; } catch (e) {} $('#pwaTxt').textContent = t; $('#pwaGo').style.display = btn ? '' : 'none'; bar.style.display = 'flex'; }
-  $('#pwaX').onclick = function () { bar.style.display = 'none'; try { localStorage.setItem('sorterPwaX', '1'); } catch (e) {} };
-  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dEvt = e; if (!standalone) showBar('Instale o app para abrir em tela cheia.', true); });
-  $('#pwaGo').onclick = function () { if (dEvt) { dEvt.prompt(); dEvt = null; } bar.style.display = 'none'; };
-  if (isIOS && !standalone) showBar('Para tela cheia: toque em Compartilhar e depois em "Adicionar à Tela de Início".', false);
-  // navegador comum (Android/desktop): entra em tela cheia no primeiro toque
-  if (!standalone) { var goFs = function () { var el = document.documentElement, f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { try { var r = f.call(el, { navigationUI: 'hide' }); if (r && r.catch) r.catch(function () {}); } catch (e) {} } document.removeEventListener('click', goFs); }; document.addEventListener('click', goFs); }
-  var at = 0;
+  // tela cheia no primeiro toque (navegador comum); instalado como app já abre em tela cheia
+  if (!(window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true)) { var goFs = function () { var el = document.documentElement, f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { try { var r = f.call(el, { navigationUI: 'hide' }); if (r && r.catch) r.catch(function () {}); } catch (e) {} } document.removeEventListener('click', goFs); }; document.addEventListener('click', goFs); }
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  var at = 0, lastAt = 0;
   function ago(ms) { var s = Math.max(0, Math.round(ms / 1000)); return s < 90 ? s + ' s' : Math.round(s / 60) + ' min'; }
   function tick() {
     if (!at) return; var age = Date.now() - at, old = age > 120000;
@@ -83,7 +70,7 @@
       if (r.status === 401) { try { localStorage.removeItem('sorterMapKey'); } catch (e) {} KEY = ''; $('#mapBody').innerHTML = '<div id="msg">Chave inválida.</div>'; $('#keyBox').style.display = 'block'; busy = false; return; }
       if (r.status === 404) { $('#mapBody').innerHTML = '<div id="msg">Ainda sem dados. Abra o app do Windows (com o envio ao celular configurado) e aguarde 1 minuto.</div>'; busy = false; return; }
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      var j = await r.json(); var html = j.z ? await b64gunzip(j.z) : j.html;
+      var j = await r.json(); if (j.at && j.at === lastAt) { tick(); busy = false; return; } lastAt = j.at || 0; var html = j.z ? await b64gunzip(j.z) : j.html;
       var sx = window.scrollX, sy = window.scrollY, card = document.querySelector('.mapcard'), cl = card ? card.scrollLeft : 0, ct = card ? card.scrollTop : 0;
       $('#mapBody').innerHTML = html; at = j.at || Date.now();
       var c2 = document.querySelector('.mapcard'); if (c2) { c2.scrollLeft = cl; c2.scrollTop = ct; } window.scrollTo(sx, sy);
@@ -91,7 +78,7 @@
     } catch (e) { $('#liveTxt').textContent = 'sem conexão'; }
     busy = false;
   }
-  load(); setInterval(load, 15000); setInterval(tick, 5000);
+  load(); setInterval(load, 5000); setInterval(tick, 5000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
   try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
