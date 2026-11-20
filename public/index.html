@@ -63,7 +63,14 @@
       var o0 = sc(), hd = document.querySelector('header.bar'), tb = $('#titleBar'), mb = $('#mapBody'); setScale(1);
       var ch = (tb ? tb.offsetHeight : 0) + (mb ? mb.offsetHeight : 0), hh = hd ? hd.offsetHeight : 0;
       if (ch > 200) base = Math.min(base, Math.max(lh - hh - 10, 120) / ch);
-      setScale(base * mult); go(o0.x, o0.y);
+      setScale(base * mult);
+      // conferência pelo tamanho REAL renderizado: se ainda sobra conteúdo (altura ou largura), reduz até caber
+      if (mult === 1) for (var i = 0; i < 4; i++) {
+        var se = document.scrollingElement, sw = rot ? R.scrollWidth : se.scrollWidth, sh = rot ? R.scrollHeight : se.scrollHeight, cw = rot ? R.clientWidth : VW, chh = rot ? R.clientHeight : VH;
+        var k = Math.min(cw / sw, chh / sh); if (k >= 0.995) break; base *= k * 0.99; setScale(base);
+      }
+      go(o0.x, o0.y);
+      var v = $('#ver'); if (v) v.textContent = 'v8 · ' + VW + '×' + VH + (rot ? ' girado' : '') + ' · esc ' + base.toFixed(2);
     } catch (e) { setScale(base * mult); }
   }
   fit(); window.addEventListener('resize', fit); if (window.visualViewport) window.visualViewport.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 150); });
