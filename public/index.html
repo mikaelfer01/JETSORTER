@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-theme="light" class="mob">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#e60012">
 <meta name="robots" content="noindex">
 <link rel="manifest" href="manifest.webmanifest">
@@ -44,12 +44,21 @@
   var zoom = 220; try { zoom = +(localStorage.getItem('sorterMobZoom') || 220); } catch (e) {}
   var applyZ = function () { document.documentElement.style.setProperty('--mz', zoom + '%'); }; applyZ();
   $('#keyOk').onclick = function () { KEY = $('#keyIn').value.trim(); try { localStorage.setItem('sorterMapKey', KEY); } catch (e) {} $('#keyBox').style.display = 'none'; load(); };
-  function fit() { var w = Math.min(window.innerWidth, document.documentElement.clientWidth || window.innerWidth); document.documentElement.style.setProperty('--ms', (w / 1500).toFixed(4)); }
+  var base = 1, mult = 1, de = document.documentElement;
+  function setScale(v) { de.style.setProperty('--ms', v.toFixed(4)); }
+  function fit() { base = Math.min(window.innerWidth, de.clientWidth || window.innerWidth) / 1500; setScale(base * mult); }
   fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', fit);
-
-  // tela cheia no primeiro toque (navegador comum); instalado como app já abre em tela cheia
-  if (!(window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true)) { var goFs = function () { var el = document.documentElement, f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { try { var r = f.call(el, { navigationUI: 'hide' }); if (r && r.catch) r.catch(function () {}); } catch (e) {} } document.removeEventListener('click', goFs); }; document.addEventListener('click', goFs); }
-  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  // zoom por pinça próprio (funciona em Android e iPhone, inclusive instalado como app)
+  var pz = null;
+  function dist(t) { var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.sqrt(dx * dx + dy * dy) || 1; }
+  document.addEventListener('touchstart', function (e) { if (e.touches.length === 2) { var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2, cy = (e.touches[0].clientY + e.touches[1].clientY) / 2; pz = { d: dist(e.touches), m: mult, s: base * mult, fx: (window.scrollX + cx) / (base * mult), fy: (window.scrollY + cy) / (base * mult), cx: cx, cy: cy }; } }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (!pz || e.touches.length !== 2) return; e.preventDefault();
+    mult = Math.max(1, Math.min(5, pz.m * dist(e.touches) / pz.d)); var ns = base * mult; setScale(ns);
+    window.scrollTo(pz.fx * ns - pz.cx, pz.fy * ns - pz.cy);
+  }, { passive: false });
+  document.addEventListener('touchend', function (e) { if (e.touches.length < 2) pz = null; }, { passive: true });
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
   var at = 0, lastAt = 0;
   function ago(ms) { var s = Math.max(0, Math.round(ms / 1000)); return s < 90 ? s + ' s' : Math.round(s / 60) + ' min'; }
   function tick() {
