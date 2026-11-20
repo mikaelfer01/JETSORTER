@@ -20,7 +20,7 @@
 </head>
 <body>
 <header class="bar">
-  <div class="title"><i class="mark"></i><div><b>Sorter · Mapa</b></div></div>
+  <div class="title"><i class="mark"></i><div><b>Sorter Monitor</b></div></div>
   <div class="live" id="live"><i class="pulse"></i><b id="liveState">AO VIVO</b><span id="liveTxt">carregando…</span></div>
 </header>
 <div id="stale"></div>
@@ -41,6 +41,8 @@
   $('#keyOk').onclick = function () { KEY = $('#keyIn').value.trim(); try { localStorage.setItem('sorterMapKey', KEY); } catch (e) {} $('#keyBox').style.display = 'none'; load(); };
   $('#mapBody').addEventListener('click', function (e) { var g = e.target.closest('[data-tip]'); var s = $('#tipSheet'); if (!g) { s.style.display = 'none'; return; } s.textContent = g.getAttribute('data-tip'); s.style.display = 'block'; });
   $('#tipSheet').addEventListener('click', function () { this.style.display = 'none'; });
+  function fit() { var w = Math.min(window.innerWidth, document.documentElement.clientWidth || window.innerWidth); document.documentElement.style.setProperty('--ms', (w / 1500).toFixed(4)); }
+  fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', fit);
   var at = 0;
   function ago(ms) { var s = Math.max(0, Math.round(ms / 1000)); return s < 90 ? s + ' s' : Math.round(s / 60) + ' min'; }
   function tick() {
