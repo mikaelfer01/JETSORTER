@@ -66,3 +66,6 @@ html.mob.rot header.bar { position: sticky; top: 0; }
 html.mob #titleBar { width: 1500px; box-sizing: border-box; zoom: var(--ms, .25); padding: 12px 10px 0; margin: 0; }
 html.mob #titleBar h2 { margin: 0; font-size: 20px; } html.mob #titleBar h2 small { font-size: 13px; margin-left: 8px; color: var(--muted, #647087); font-weight: 400; }
 html.mob header.bar { zoom: .6; padding-top: calc(4px + env(safe-area-inset-top)) !important; }
+
+html.mob #mapBody, html.mob #titleBar { margin-left: auto !important; margin-right: auto !important; }
+html.mob #mapBody { padding-bottom: 6px; }
