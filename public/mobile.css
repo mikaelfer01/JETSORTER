@@ -38,3 +38,7 @@ html.mob .mapside .mapkpis .kpi label { font-size: 12px !important; letter-spaci
 html.mob .mapside .mapkpis .kpi b { font-size: 26px !important; }
 html.mob .mapside .mapkpis .kpi.dayk b, html.mob .mapside .mapkpis .kpi.rejk b { font-size: 28px !important; }
 html.mob .mapside .mapkpis .kpi span { display: block !important; font-size: 12px !important; max-height: none; }
+
+/* ===== PWA em tela cheia (iPhone/Android): respeita notch e barra inferior ===== */
+html.mob body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); background: var(--bg, #f2f3f5); -webkit-touch-callout: none; overscroll-behavior-y: none; }
+html.mob header.bar { padding-top: calc(6px + env(safe-area-inset-top)) !important; }
