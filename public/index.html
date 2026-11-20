@@ -60,6 +60,11 @@
   }, { passive: false });
   document.addEventListener('touchend', function (e) { if (e.touches.length < 2) pz = null; }, { passive: true });
   document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+  // tela cheia + horizontal no primeiro toque (navegador comum); instalado como app já abre assim
+  var lockL = function () { try { screen.orientation.lock('landscape').catch(function () {}); } catch (e) {} };
+  lockL();
+  if (!(window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true)) { var goFs = function () { var el = document.documentElement, f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { try { var r = f.call(el, { navigationUI: 'hide' }); if (r && r.then) r.then(lockL, function () {}); } catch (e) {} } document.removeEventListener('click', goFs); }; document.addEventListener('click', goFs); }
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   var at = 0, lastAt = 0;
   function ago(ms) { var s = Math.max(0, Math.round(ms / 1000)); return s < 90 ? s + ' s' : Math.round(s / 60) + ' min'; }
   function tick() {
