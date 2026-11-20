@@ -44,3 +44,29 @@ html.mob .mapside .mapkpis .kpi span { display: none !important; }
 html.mob .mapside .mapkpis .kpi.dayk span, html.mob .mapside .mapkpis .kpi.rejk span { display: block !important; font-size: 9.5px !important; }
 html.mob .vwbar h2 small { display: none; }
 html.mob .mapside .mapkpis .kpi.rejk, html.mob .mapside .mapkpis .kpi.dayk { order: -1; }
+
+/* ===== só o Mapa + indicadores do Mapa ===== */
+html.mob .vwbar, html.mob .maplg .mlg:nth-last-child(-n+5) { }
+html.mob #stale { margin: 4px 8px 0; }
+html.mob header.bar { padding: 4px 10px !important; }
+html.mob header.bar .mark { transform: scale(.8); }
+
+/* celular deitado: tudo numa tela só, igual ao app (mapa inteiro à esquerda, indicadores à direita) */
+@media (orientation: landscape) and (max-height: 520px) {
+  html.mob header.bar { padding: 2px 10px !important; }
+  html.mob header.bar .title b { font-size: 13px; }
+  html.mob main { padding: 4px 6px 24px !important; }
+  html.mob .mapgrid { display: grid !important; grid-template-columns: minmax(0, 1fr) 236px; align-items: start; gap: 6px; }
+  html.mob .mapmain { grid-column: 1; grid-row: 1; min-width: 0; }
+  html.mob .mapside { grid-column: 2; grid-row: 1; order: 0; }
+  html.mob .mapmain .mapcard { max-height: none; overflow: visible; padding: 4px !important; }
+  html.mob .mapmain .sorterMap { width: 100% !important; }
+  html.mob .maplg { font-size: 10px; gap: 4px 8px; }
+  html.mob .mapside .mapkpis { grid-template-columns: 1fr 1fr !important; gap: 4px !important; }
+  html.mob .mapside .mapkpis .kpi, html.mob .mapside .mapkpis .kpi.rejk, html.mob .mapside .mapkpis .kpi.dayk { grid-column: span 1 !important; padding: 4px 6px !important; }
+  html.mob .mapside .mapkpis .kpi.rejk, html.mob .mapside .mapkpis .kpi.dayk { grid-column: span 2 !important; }
+  html.mob .mapside .mapkpis .kpi b, html.mob .mapside .mapkpis .kpi.dayk b, html.mob .mapside .mapkpis .kpi.rejk b { font-size: 17px !important; }
+  html.mob .mapside .mapkpis .kpi label { font-size: 8.5px !important; }
+  html.mob .mapside .mapkpis .kpi.dayk span, html.mob .mapside .mapkpis .kpi.rejk span { font-size: 8.5px !important; }
+  html.mob #mobZoom { display: none; }
+}
