@@ -39,8 +39,9 @@
 <script>
 (function () {
   var $ = function (s) { return document.querySelector(s); };
-  var KEY = '';
+  var DEFAULT_KEY = 'hDXSpDzDXpGcOu-f9DVM8gdd'; var KEY = '';
   try { var m = /[#&]k=([^&]+)/.exec(location.hash); if (m) { localStorage.setItem('sorterMapKey', decodeURIComponent(m[1])); history.replaceState(null, '', location.pathname); } KEY = localStorage.getItem('sorterMapKey') || ''; } catch (e) {}
+  if (!KEY) KEY = DEFAULT_KEY;
   var zoom = 220; try { zoom = +(localStorage.getItem('sorterMobZoom') || 220); } catch (e) {}
   var applyZ = function () { document.documentElement.style.setProperty('--mz', zoom + '%'); }; applyZ();
   $('#keyOk').onclick = function () { KEY = $('#keyIn').value.trim(); try { localStorage.setItem('sorterMapKey', KEY); } catch (e) {} $('#keyBox').style.display = 'none'; load(); };
@@ -76,7 +77,7 @@
     try {
       if (!KEY) { $('#keyBox').style.display = 'block'; busy = false; return; }
       var r = await fetch('/api/state', { headers: { 'x-key': KEY }, cache: 'no-store' });
-      if (r.status === 401) { try { localStorage.removeItem('sorterMapKey'); } catch (e) {} KEY = ''; $('#mapBody').innerHTML = '<div id="msg">Chave inválida.</div>'; $('#keyBox').style.display = 'block'; busy = false; return; }
+      if (r.status === 401) { try { localStorage.removeItem('sorterMapKey'); } catch (e) {} KEY = (KEY === DEFAULT_KEY) ? '' : DEFAULT_KEY; if (KEY) { busy = false; return load(); } $('#mapBody').innerHTML = '<div id="msg">Chave inválida.</div>'; $('#keyBox').style.display = 'block'; busy = false; return; }
       if (r.status === 404) { $('#mapBody').innerHTML = '<div id="msg">Ainda sem dados. Abra o app do Windows (com o envio ao celular configurado) e aguarde 1 minuto.</div>'; busy = false; return; }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       var j = await r.json(); if (j.at && j.at === lastAt) { tick(); busy = false; return; } lastAt = j.at || 0; var html = j.z ? await b64gunzip(j.z) : j.html;
