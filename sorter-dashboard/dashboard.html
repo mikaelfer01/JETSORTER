@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sorter Monitor</title>
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <header class="bar">
+    <div class="title"><i class="mark"></i><div><b>Sorter Monitor</b><small>Hub Contagem · Cross-belt</small></div></div>
+    <nav class="views" id="views"><button data-view="geral" class="on">Visão geral</button><button data-view="ind">Induções</button><button data-view="chute">Saídas</button><button data-view="rej">Rejeitos</button><button data-view="rel">Relatório</button><button data-view="map">Mapa</button><button data-view="lay">Camadas</button><button data-view="dev">Equipamentos</button><button data-view="prod">Produtividade</button><button data-view="hist">Histórico</button><button data-view="alr">Alertas<i id="alrBadge" class="nbadge hidden"></i></button><button data-view="busca">Rastreio</button><button data-view="sys">Sistema</button></nav>
+    <div class="live" id="live"><i class="pulse"></i><b id="liveState">AO VIVO</b><span id="liveTxt">iniciando…</span></div>
+    <div class="ctrls">
+      <button id="btnSound" class="btn icon" title="Alerta sonoro quando uma saída começar a bloquear">🔕</button>
+      <button id="btnMetas" class="btn" title="Metas, alertas, destinos e aparência (tudo configurável aqui)">Metas</button>
+      <button id="btnTV" class="btn" title="Modo painel (tela cheia)">Modo TV</button>
+      <button id="btnTheme" class="btn icon" title="Tema claro/escuro">☾</button>
+      <button id="btnSettings" class="btn icon" title="Configurações">⚙</button>
+      <button id="btnAppMenu" class="btn icon app-only" title="Menu do aplicativo (login, tela cheia, zoom, iniciar com o Windows)">☰</button>
+    </div>
+  </header>
+
+  <div class="toolbar strip">
+    <div class="filters">
+      <label>Período
+        <select id="period">
+          <option value="today">Hoje (00:00 → agora)</option>
+          <option value="since">Desde horário…</option>
+          <option value="last:30">Últimos 30 min</option>
+          <option value="last:60">Última 1 h</option>
+          <option value="last:120">Últimas 2 h</option>
+          <option value="last:240">Últimas 4 h</option>
+        </select>
+      </label>
+      <input type="time" id="sinceTime" value="06:00" class="hidden" title="Início do período (hoje)" />
+      <label>Rejeito
+        <select id="rejMode"><option value="all">Todas as exceções</option><option value="block">Só Chute block</option></select>
+      </label>
+      <label>Atualizar
+        <select id="refresh">
+          <option value="1">1 s</option><option value="2">2 s</option><option value="3">3 s</option><option value="5">5 s</option><option value="10">10 s</option>
+          <option value="30">30 s</option><option value="60">1 min</option><option value="0">Manual</option>
+        </select>
+      </label>
+    </div>
+    <div id="chips" class="chips"></div><div id="check" class="check"></div>
+    <div class="tools"><button id="btnHelp" class="btn" title="Troca o modo de explicações: cartão ao passar o mouse, cartão + texto fixo, ou desligado">Explicações</button><button id="btnGuide" class="btn" title="Glossário: o que significa cada termo">Guia</button><button id="btnSaveHtml" class="btn" title="Salva a tela atual como um arquivo HTML para enviar ou arquivar">Salvar tela</button><button id="btnNow" class="btn" title="Atualizar agora">Atualizar</button></div>
+  </div>
+  <div id="alertStack"><div id="devAlert" class="alert crit hidden"></div>
+  <div id="bindAlert" class="alert crit hidden"></div>
+  <div id="partialBar" class="alert warn hidden"></div>
+  <div id="alert" class="alert hidden"></div></div>
+
+  <main id="main" data-view="geral">
+    <section id="boot" class="boot"><div class="bootbox"><i class="spin"></i><div><b id="bootTxt">Conectando ao sorter…</b><small>Primeira carga do dia: pode levar alguns segundos. Depois a tela atualiza sozinha a cada poucos segundos.</small></div></div></section>
+    <section id="brief" class="card brief vg"></section>
+    <section id="hero" class="hero vg"></section>
+    <section class="card devStrip vg" id="devStrip"></section>
+    <section class="card bindCard vg" id="binds"></section>
+    <section id="kpis" class="kpis vg"></section>
+
+    <section class="card insights vg"><h2>O que chamou atenção <small>leitura automática do período</small></h2><ul id="insights"></ul></section>
+
+    <section class="card stationsCard vg"><h2>Estações de indução ao vivo <small id="stSub">peças/h por porta · clique para filtrar</small></h2><div id="stations"></div></section>
+
+    <section class="grid vg">
+
+      <div class="card c8">
+        <h2>Processamento e rejeito <small>arraste no gráfico para filtrar um intervalo</small></h2>
+        <div id="timeline" class="timeline"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="card c4">
+        <h2>Agora <small id="nowTitle"></small></h2>
+        <div id="now"></div>
+      </div>
+
+      <div class="card c6 notv">
+        <h2>Rejeito hora a hora <small id="hourlySub"></small><span class="tools"><button class="mini" data-csv="hourly">CSV</button></span></h2>
+        <div id="hourly"></div>
+      </div>
+      <div class="card c6">
+        <h2>Ofensores
+          <span class="tools">
+            <select id="sortBy"><option value="count">por quantidade</option><option value="rate">por taxa</option></select>
+            <select id="routeLevel"><option value="1">Rota: UF</option><option value="2">Rota: UF + base</option><option value="3">Rota: completa</option></select>
+            <button class="mini" data-csv="offenders">CSV</button>
+          </span>
+        </h2>
+        <div class="tabs" id="tabs">
+          <button data-tab="chutes">Saídas</button><button data-tab="routes">Rotas</button>
+          <button data-tab="inds">Induções (portas)</button><button data-tab="episodes">Episódios de bloqueio</button>
+        </div>
+        <div id="offenders"></div>
+      </div>
+
+      <div class="card c6 notv">
+        <h2>Mapa de saídas <small>cor = bloqueios (Chute block) · clique para filtrar</small></h2>
+        <div id="chutemap"></div>
+      </div>
+      <div class="card c6 notv">
+        <h2>Indução × saída <small>origem das peças rejeitadas</small></h2>
+        <div id="matrix"></div>
+      </div>
+
+      <div class="card c12 notv">
+        <h2><span id="recentTitle">Últimos rejeitos</span><span class="tools"><button class="mini" data-csv="recent">CSV</button></span></h2>
+        <div id="recent"></div>
+      </div>
+    </section>
+    <section id="viewInd" class="vw vi"></section>
+    <section id="viewChute" class="vw vc"></section>
+    <section id="viewDev" class="vw vd"></section>
+    <section id="viewDevX" class="vw vd"></section>
+    <section id="viewHist" class="vw vh"></section>
+    <section id="viewAlr" class="vw va"></section>
+    <section id="viewBusca" class="vw vb"></section>
+    <section id="viewSys" class="vw vs"></section>
+    <section id="viewLay" class="vw vl"></section>
+    <section id="viewRej" class="vw vr"></section>
+    <section id="viewRejX" class="vw vr"></section>
+    <section id="viewRel" class="vw vrel"></section>
+    <section id="viewMap" class="vw vm">
+      <div class="vwbar"><div><h2>Mapa do sorter <small>todas as saídas e induções, ao vivo</small></h2></div>
+        <div class="vwctl">
+          <label>Colorir por <select id="mapColor"><option value="status">Status</option><option value="vol">Volume de peças</option><option value="rej">Rejeitos</option><option value="base">Base de destino</option><option value="saca">Cor da saca</option></select></label>
+          <label>Janela <select id="mapWin"><option value="-1">Hora atual (desde HH:00)</option><option value="60">Últimos 60 min</option><option value="30">Últimos 30 min</option><option value="15">Últimos 15 min</option><option value="240">Últimas 4 h</option><option value="0">Hoje</option></select></label>
+          <label>Camada <select id="mapLayer"><option value="">L1 + L2</option><option value="L1">Só L1 (induções 01–06)</option><option value="L2">Só L2 (induções 07–12)</option></select></label>
+          <label>Destacar base <select id="mapBase"><option value="">—</option></select></label>
+          <button id="mapHelpBtn" class="btn" type="button" title="Como ler e usar o mapa">? Como usar</button>
+        </div></div>
+      <div id="mapBody"></div>
+      <dialog id="mapHelpDlg" class="mapdlg"><div class="mapdlgh"><b>Como usar o mapa</b><button class="btn" id="mapHelpClose" type="button">Fechar</button></div><div id="mapHelpBody" class="mapdlgb"></div></dialog>
+    </section>
+    <section id="viewProd" class="vw vp">
+      <div class="card prbar" id="prBar" data-mode="live">
+        <div class="prtop">
+          <div class="seg big"><button data-prmode="live" class="on">Ao vivo · hoje</button><button data-prmode="custom">Período escolhido</button></div>
+          <span class="muted" id="prHint">Ao vivo: detalhe completo do dia (trace). Período escolhido: qualquer dia/hora até qualquer dia/hora, até 31 dias.</span>
+        </div>
+        <div id="prCustom" class="prcustom hidden">
+          <div class="prfields">
+            <label>De <input type="date" id="prFromD"><input type="time" id="prFromT"></label>
+            <label>Até <input type="date" id="prToD"><input type="time" id="prToT"></label>
+            <label class="chk"><input type="checkbox" id="prFollow"> fim = agora (acompanhar)</label>
+            <button class="btn on" id="prGo">Analisar</button>
+            <button class="btn" id="prCsv" disabled>Exportar CSV</button>
+          </div>
+          <div class="prpresets"><span class="muted">Atalhos:</span>
+            <button data-prpreset="today">Hoje</button><button data-prpreset="yesterday">Ontem</button><button data-prpreset="24h">Últimas 24 h</button>
+            <button data-prpreset="7d">Últimos 7 dias</button><button data-prpreset="week">Esta semana</button><button data-prpreset="month">Este mês</button>
+          </div>
+          <div class="prprog hidden" id="prProg"><i></i></div>
+          <div class="prstatus muted" id="prStatus"></div>
+        </div>
+      </div>
+      <div id="prMetas"></div>
+      <div id="prTurnos"></div>
+      <div id="prLive"></div>
+      <div id="prRange" class="hidden"></div>
+    </section>
+    <footer id="foot"></footer>
+  </main>
+
+  <div id="tip" class="tip hidden"></div>
+  <div id="helpcard" class="helpcard hidden" role="tooltip"></div>
+
+  <dialog id="guide" class="guide">
+    <h3>Guia: o que significa cada termo</h3>
+    <dl id="guideBody"></dl>
+    <menu><button type="button" id="guideClose" class="btn primary">Fechar</button></menu>
+  </dialog>
+
+  <dialog id="settings">
+    <form method="dialog" id="settingsForm">
+      <h3>Configurações</h3>
+      <label>Endereço do sorter <input name="base" type="text" placeholder="http://10.1.164.9" /></label>
+      <label>Alerta de rejeito (%) <input name="rejectThreshold" type="number" step="0.1" min="0" /></label>
+      <label>Janela do painel "Agora" (min) <input name="nowMin" type="number" min="5" max="120" /></label>
+      <label>Rejeitos na janela para marcar saída bloqueando <input name="chuteAlert" type="number" min="1" /></label>
+      <label class="chkrow"><input name="notifyBind" type="checkbox" /> Notificação do Chrome quando falhar abrir lote na saída</label>
+      <label class="chkrow"><input name="notifyDev" type="checkbox" /> Notificação do Chrome para falhas de equipamento (cortina/sensor, carrinho, indução, WCS)</label>
+      <label>Falhas de cortina/sensor na mesma indução em 30 min para avisar "oscilando" <input name="intermitN" type="number" min="2" max="30" /></label>
+      <label>Meta do dia (peças, 0 = sem meta) <input name="metaDia" type="number" min="0" step="1000" /></label>
+      <label>Tempo de tratamento manual por rejeito (s) <input name="retrabSeg" type="number" min="5" max="900" /></label>
+      <label>Janela do gráfico
+        <select name="bucketMin"><option value="0">Auto</option><option value="1">1 min</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 h</option></select>
+      </label>
+      <fieldset class="fsx"><legend>Turnos (início de cada um; termina quando o próximo começa)</legend>
+        <label>T1 começa às <input name="turnoT1" type="time" /></label>
+        <label>T2 começa às <input name="turnoT2" type="time" /></label>
+        <label>T3 começa às <input name="turnoT3" type="time" /></label>
+      </fieldset>
+      <fieldset class="fsx"><legend>Feishu · produtividade hora a hora</legend>
+        <p class="muted">O envio é <b>manual</b>: use o botão abaixo ou a aba <b>Relatório</b> (escolha a hora e clique em “Enviar esta hora ao Feishu”). Nada é enviado automaticamente.</p><input name="feishuOn" type="checkbox" hidden />
+        <label>URL do webhook <input name="feishuUrl" type="text" placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/…" autocomplete="off" /></label>
+        <label>Chave de assinatura (só se ativada no bot) <input name="feishuSecret" type="password" autocomplete="off" /></label>
+        <label>Meta por hora (peças, 0 = sem meta) <input name="feishuMeta" type="number" min="0" step="100" /></label>
+        <input name="feishuMin" type="number" hidden />
+        <label>Horário de operação: da hora <input name="feishuIni" type="number" min="0" max="23" /> até <input name="feishuFim" type="number" min="1" max="24" /> (usado no “restante do dia” do relatório)</label>
+        <p class="muted" id="feishuStatus"></p>
+        <button type="button" id="feishuTest" class="btn">Enviar mensagem de teste</button>
+        <button type="button" id="feishuNow" class="btn">Enviar relatório da última hora fechada</button>
+      </fieldset>
+      <p id="settingsMsg" class="muted"></p>
+      <menu>
+        <button type="button" id="settingsCancel" class="btn">Cancelar</button>
+        <button type="submit" value="save" class="btn primary">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="platform.js"></script>
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
