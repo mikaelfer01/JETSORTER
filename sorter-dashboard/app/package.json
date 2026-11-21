@@ -1,7 +1,7 @@
 {
   "name": "sorter-monitor",
   "productName": "Sorter Monitor",
-  "version": "2.17.34",
+  "version": "2.17.35",
   "description": "Painel em tempo real do sorter cross-belt (Hub Contagem)",
   "main": "main.js",
   "author": "Hub Contagem",

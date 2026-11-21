@@ -69,3 +69,4 @@ html.mob header.bar { zoom: .6; padding-top: calc(4px + env(safe-area-inset-top)
 
 html.mob #mapBody, html.mob #titleBar { margin-left: auto !important; margin-right: auto !important; }
 html.mob #mapBody { padding-bottom: 6px; }
+html.mob .mapmain .motv { flex: none !important; }

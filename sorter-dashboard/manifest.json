@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sorter Dashboard - Cross-belt Contagem",
-  "version": "1.20.34",
+  "version": "1.20.35",
   "description": "Dashboard dinâmico do sorter: processamento do dia, rejeitos, saídas, rotas e induções ofensoras.",
   "action": {
     "default_title": "Abrir dashboard do sorter",

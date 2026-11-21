@@ -266,3 +266,6 @@ Revisão visual completa (13 telas, 3 larguras, 2 temas): botões ativos no tema
 
 ## v1.20.34 · app 2.17.34
 - Mapa (app e celular): "Rejeito do dia" e o gráfico "Rejeito hora a hora" agora contam **todas as exceções** (qualquer motivo), não só Chute block.
+
+## v1.20.35 · app 2.17.35
+- Mapa (app e celular): novo cartão "Rejeito por motivo" abaixo dos gráficos hora a hora (top 10 motivos do dia, com quantidade, % e quantidade da hora atual).
